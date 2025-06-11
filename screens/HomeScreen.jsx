@@ -43,25 +43,17 @@ const HomeScreen = ({ navigation }) => {
       <Text style={styles.title}>🎓 Fun Flashcards Game!</Text>
 
       <Image
-        source={require('../assets/Images/kid.jpg')}
+        source={require("../assets/Images/kid.jpg")}
         style={styles.image}
       />
 
-      <Text style={styles.subtitle}>Choose Difficulty:</Text>
-
-      {['Easy', 'Medium', 'Hard'].map((level) => (
-        <Animated.View
-          key={level}
-          style={{ transform: [{ scale: scaleAnim }], marginVertical: 10 }}
-        >
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => handlePress(level.toLowerCase())}
-          >
-            <Text style={styles.buttonText}>{level}</Text>
-          </TouchableOpacity>
-        </Animated.View>
-      ))}
+      <Animated.View
+        style={{ transform: [{ scale: scaleAnim }], marginTop: 30 }}
+      >
+        <TouchableOpacity style={styles.button} onPress={handlePress}>
+          <Text style={styles.buttonText}>Challenge Your Mind 🔥</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 };
@@ -71,43 +63,43 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFE4B5',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#FFE4B5",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 20,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
-    color: '#333',
-    textAlign: 'center',
+    color: "#333",
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 20,
     marginVertical: 10,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   image: {
     width: 220,
     height: 220,
-    resizeMode: 'contain',
+    resizeMode: "contain",
     marginBottom: 20,
   },
   button: {
-    backgroundColor: '#FF6F61',
+    backgroundColor: "#FF6F61",
     paddingVertical: 12,
     paddingHorizontal: 25,
     borderRadius: 25,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 5,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
