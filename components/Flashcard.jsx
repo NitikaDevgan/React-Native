@@ -174,6 +174,9 @@ const FlashcardGame = ({ route, navigation }) => {
       <Pressable style={styles.modalButton} onPress={() => navigation.goBack()}>
         <Text style={{ color: "#fff" }}>Back to Home</Text>
       </Pressable>
+      <Pressable style={styles.restartButton} onPress={restartGame}>
+        <Text style={{ color: "#fff" }}>Restart</Text>
+      </Pressable>
     </View>
   );
 };
@@ -233,6 +236,13 @@ const styles = StyleSheet.create({
   modalButton: {
     marginTop: 10,
     backgroundColor: "#007BFF",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  restartButton: {
+    marginVertical: 10,
+    backgroundColor: "#28a745",
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 5,
