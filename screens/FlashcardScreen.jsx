@@ -6,7 +6,7 @@ const FlashcardScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Select Difficulty</Text>
+      <Text style={styles.heading}>Select Difficulty Level</Text>
       {difficulties.map((level) => (
         <TouchableOpacity
           key={level}
