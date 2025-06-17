@@ -42,6 +42,11 @@ const FlashcardGame = ({ route, navigation }) => {
   const [score, setScore] = useState(0);
   const [showTryAgain, setShowTryAgain] = useState(false);
   const [showWinner, setShowWinner] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+  const [totalTime, setTotalTime] = useState(0);
+
+
 
   useEffect(() => {
     const filtered = originalFlashcards.filter(
@@ -53,7 +58,35 @@ const FlashcardGame = ({ route, navigation }) => {
     }));
     const shuffled = shuffleArray(duplicated);
     setCards(shuffled);
+
+    // Set time based on difficulty
+    let initialTime = 0;
+    if (difficulty === "easy") initialTime = 60;
+    else if (difficulty === "medium") initialTime = 90;
+    else if (difficulty === "hard") initialTime = 120;
+
+    setTimeLeft(initialTime);
+    setTotalTime(initialTime);
+
   }, [difficulty]);
+
+  useEffect(() => {
+    if (showWinner || gameOver) return; // Stop timer if game ends
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setGameOver(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [showWinner, gameOver]);
+
 
   useEffect(() => {
     if (flipped.length === 2) {
@@ -92,6 +125,7 @@ const FlashcardGame = ({ route, navigation }) => {
     setMatched([]);
     setFlipped([]);
     setShowWinner(false);
+    setGameOver(false);
 
     const filtered = originalFlashcards.filter(
       (card) => card.level === difficulty
@@ -102,11 +136,35 @@ const FlashcardGame = ({ route, navigation }) => {
     }));
     const shuffled = shuffleArray(duplicated);
     setCards(shuffled);
+
+    let initialTime = 0;
+    if (difficulty === "easy") initialTime = 60;
+    else if (difficulty === "medium") initialTime = 90;
+    else if (difficulty === "hard") initialTime = 120;
+    setTimeLeft(initialTime);
+    setTotalTime(initialTime); // ← ADD this line
+
   };
+
 
   return (
     <View style={styles.container}>
-      <Text style={styles.score}>Score: {score}</Text>
+      {totalTime > 0 && (
+        <View style={styles.progressBarContainer}>
+          <View
+            style={[
+              styles.progressBarFill,
+              { width: `${(timeLeft / totalTime) * 100}%` },
+            ]}
+          />
+        </View>
+      )}
+
+      <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", paddingHorizontal: 20 }}>
+        <Text style={styles.score}>Score: {score}</Text>
+        <Text style={styles.timer}>⏰ Time Left: {timeLeft}s</Text>
+      </View>
+
       <View style={styles.grid}>
         {cards.map((card, index) => {
           const isVisible = flipped.includes(index) || matched.includes(index);
@@ -126,6 +184,9 @@ const FlashcardGame = ({ route, navigation }) => {
           );
         })}
       </View>
+
+
+
 
       {/* Try Again Modal */}
       <Modal
@@ -169,6 +230,29 @@ const FlashcardGame = ({ route, navigation }) => {
           </View>
         </View>
       </Modal>
+
+
+      {/* Game Over Modal */}
+      <Modal
+        transparent
+        visible={gameOver}
+        animationType="fade"
+        onRequestClose={() => setGameOver(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text
+              style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}
+            >
+              ⌛ Time’s Up!
+            </Text>
+            <Pressable style={styles.modalButton} onPress={restartGame}>
+              <Text style={{ color: "#fff" }}>Try Again</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
 
       {/* back button  */}
       <Pressable style={styles.modalButton} onPress={() => navigation.goBack()}>
@@ -247,4 +331,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 5,
   },
+  timer: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#d9534f",
+    marginBottom: 10,
+  },
+  progressBarContainer: {
+    height: 16,
+    width: "90%",
+    backgroundColor: "#e0e0e0",
+    borderRadius: 10,
+    marginBottom: 10,
+    overflow: "hidden",
+  },
+
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: "#007BFF",
+    borderRadius: 10,
+  },
+
 });
