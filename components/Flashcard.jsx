@@ -44,6 +44,8 @@ const FlashcardGame = ({ route, navigation }) => {
   const [showWinner, setShowWinner] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const [gameOver, setGameOver] = useState(false);
+  const [totalTime, setTotalTime] = useState(0);
+
 
 
   useEffect(() => {
@@ -64,6 +66,8 @@ const FlashcardGame = ({ route, navigation }) => {
     else if (difficulty === "hard") initialTime = 120;
 
     setTimeLeft(initialTime);
+    setTotalTime(initialTime);
+
   }, [difficulty]);
 
   useEffect(() => {
@@ -138,11 +142,24 @@ const FlashcardGame = ({ route, navigation }) => {
     else if (difficulty === "medium") initialTime = 90;
     else if (difficulty === "hard") initialTime = 120;
     setTimeLeft(initialTime);
+    setTotalTime(initialTime); // ← ADD this line
+
   };
 
 
   return (
     <View style={styles.container}>
+      {totalTime > 0 && (
+        <View style={styles.progressBarContainer}>
+          <View
+            style={[
+              styles.progressBarFill,
+              { width: `${(timeLeft / totalTime) * 100}%` },
+            ]}
+          />
+        </View>
+      )}
+
       <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", paddingHorizontal: 20 }}>
         <Text style={styles.score}>Score: {score}</Text>
         <Text style={styles.timer}>⏰ Time Left: {timeLeft}s</Text>
@@ -214,7 +231,7 @@ const FlashcardGame = ({ route, navigation }) => {
         </View>
       </Modal>
 
-      
+
       {/* Game Over Modal */}
       <Modal
         transparent
@@ -319,6 +336,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#d9534f",
     marginBottom: 10,
+  },
+  progressBarContainer: {
+    height: 16,
+    width: "90%",
+    backgroundColor: "#e0e0e0",
+    borderRadius: 10,
+    marginBottom: 10,
+    overflow: "hidden",
+  },
+
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: "#007BFF",
+    borderRadius: 10,
   },
 
 });
