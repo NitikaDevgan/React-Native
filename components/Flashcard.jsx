@@ -214,7 +214,7 @@ const FlashcardGame = ({ route, navigation }) => {
         </View>
       </Modal>
 
-      {/* Game Over Modal  */}
+      
       {/* Game Over Modal */}
       <Modal
         transparent
