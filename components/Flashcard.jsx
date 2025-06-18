@@ -16,13 +16,14 @@ const originalFlashcards = [
   { id: 4, image: require("../assets/Images/dog.jpg"), level: "hard" },
   { id: 5, image: require("../assets/Images/cat.jpg"), level: "hard" },
   { id: 6, image: require("../assets/Images/rabbit.jpg"), level: "hard" },
-  { id: 7, image: require("../assets/Images/brown.jpg"), level: "medium" },
+  { id: 7, image: require("../assets/Images/brown.jpg"), level: "hard" },
   { id: 8, image: require("../assets/Images/handDrawn.jpg"), level: "medium" },
   { id: 9, image: require("../assets/Images/nature.jpg"), level: "medium" },
   { id: 10, image: require("../assets/Images/bird.jpg"), level: "medium" },
-  { id: 11, image: require("../assets/Images/tiger.jpg"), level: "easy" },
+  { id: 11, image: require("../assets/Images/tiger.jpg"), level: "medium" },
   { id: 12, image: require("../assets/Images/experiment.jpg"), level: "easy" },
   { id: 13, image: require("../assets/Images/wallpaper.jpg"), level: "easy" },
+  { id: 14, image: require("../assets/Images/apple.jpg"), level: "easy" },
 ];
 
 const shuffleArray = (array) => {
