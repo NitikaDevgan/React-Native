@@ -235,7 +235,7 @@ const FlashcardGame = ({ route, navigation }) => {
               style={styles.modalButton}
               onPress={() => navigation.goBack()}
             >
-              <Text style={{ color: "#fff" }}>Back to Home</Text>
+              <Text style={{ color: "#fff" }}>Return Home</Text>
             </Pressable>
           </View>
         </View>
