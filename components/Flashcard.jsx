@@ -46,8 +46,6 @@ const FlashcardGame = ({ route, navigation }) => {
   const [gameOver, setGameOver] = useState(false);
   const [totalTime, setTotalTime] = useState(0);
 
-
-
   useEffect(() => {
     const filtered = originalFlashcards.filter(
       (card) => card.level === difficulty
@@ -67,7 +65,6 @@ const FlashcardGame = ({ route, navigation }) => {
 
     setTimeLeft(initialTime);
     setTotalTime(initialTime);
-
   }, [difficulty]);
 
   useEffect(() => {
@@ -87,6 +84,9 @@ const FlashcardGame = ({ route, navigation }) => {
     return () => clearInterval(timer);
   }, [showWinner, gameOver]);
 
+  const totalPairs = originalFlashcards.filter(
+    (card) => card.level === difficulty
+  ).length;
 
   useEffect(() => {
     if (flipped.length === 2) {
@@ -95,9 +95,10 @@ const FlashcardGame = ({ route, navigation }) => {
         setMatched((prev) => [...prev, first, second]);
         setScore((prev) => {
           const newScore = prev + 1;
-          if (newScore === originalFlashcards.length) {
+          if (newScore === totalPairs) {
             setShowWinner(true);
           }
+
           return newScore;
         });
         setFlipped([]);
@@ -143,9 +144,7 @@ const FlashcardGame = ({ route, navigation }) => {
     else if (difficulty === "hard") initialTime = 120;
     setTimeLeft(initialTime);
     setTotalTime(initialTime); // ← ADD this line
-
   };
-
 
   return (
     <View style={styles.container}>
@@ -160,7 +159,14 @@ const FlashcardGame = ({ route, navigation }) => {
         </View>
       )}
 
-      <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", paddingHorizontal: 20 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          width: "100%",
+          paddingHorizontal: 20,
+        }}
+      >
         <Text style={styles.score}>Score: {score}</Text>
         <Text style={styles.timer}>⏰ Time Left: {timeLeft}s</Text>
       </View>
@@ -184,9 +190,6 @@ const FlashcardGame = ({ route, navigation }) => {
           );
         })}
       </View>
-
-
-
 
       {/* Try Again Modal */}
       <Modal
@@ -227,10 +230,15 @@ const FlashcardGame = ({ route, navigation }) => {
             <Pressable style={styles.modalButton} onPress={restartGame}>
               <Text style={{ color: "#fff" }}>Play Again</Text>
             </Pressable>
+            <Pressable
+              style={styles.modalButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={{ color: "#fff" }}>Back to Home</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
-
 
       {/* Game Over Modal */}
       <Modal
@@ -252,7 +260,6 @@ const FlashcardGame = ({ route, navigation }) => {
           </View>
         </View>
       </Modal>
-
 
       {/* back button  */}
       <Pressable style={styles.modalButton} onPress={() => navigation.goBack()}>
@@ -351,5 +358,4 @@ const styles = StyleSheet.create({
     backgroundColor: "#007BFF",
     borderRadius: 10,
   },
-
 });
