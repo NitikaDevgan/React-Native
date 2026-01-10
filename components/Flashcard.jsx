@@ -8,6 +8,9 @@ import {
   Modal,
   Pressable,
 } from "react-native";
+import ConfettiCannon from "react-native-confetti-cannon";
+
+/* ================= DATA ================= */
 
 const originalFlashcards = [
   { id: 1, image: require("../assets/Images/apple.jpg"), level: "hard" },
@@ -35,8 +38,11 @@ const shuffleArray = (array) => {
   return shuffled;
 };
 
+/* ================= COMPONENT ================= */
+
 const FlashcardGame = ({ route, navigation }) => {
   const { difficulty } = route.params;
+
   const [cards, setCards] = useState([]);
   const [flipped, setFlipped] = useState([]);
   const [matched, setMatched] = useState([]);
@@ -46,30 +52,41 @@ const FlashcardGame = ({ route, navigation }) => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [totalTime, setTotalTime] = useState(0);
+  const [timeBonus, setTimeBonus] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
 
+  /* ===== Difficulty Config ===== */
+  const difficultyConfig = {
+    easy: { time: 60, multiplier: 2 },
+    medium: { time: 90, multiplier: 3 },
+    hard: { time: 120, multiplier: 5 },
+  };
+
+  const filteredCards = originalFlashcards.filter(
+    (card) => card.level === difficulty
+  );
+
+  const totalPairs = filteredCards.length;
+
+  /* ===== Init Game ===== */
   useEffect(() => {
-    const filtered = originalFlashcards.filter(
-      (card) => card.level === difficulty
+    const duplicated = [...filteredCards, ...filteredCards].map(
+      (card, index) => ({
+        ...card,
+        uniqueId: `${card.id}-${index}`,
+      })
     );
-    const duplicated = [...filtered, ...filtered].map((card, index) => ({
-      ...card,
-      uniqueId: `${card.id}-${index}`,
-    }));
-    const shuffled = shuffleArray(duplicated);
-    setCards(shuffled);
 
-    // Set time based on difficulty
-    let initialTime = 0;
-    if (difficulty === "easy") initialTime = 60;
-    else if (difficulty === "medium") initialTime = 90;
-    else if (difficulty === "hard") initialTime = 120;
+    setCards(shuffleArray(duplicated));
 
+    const initialTime = difficultyConfig[difficulty].time;
     setTimeLeft(initialTime);
     setTotalTime(initialTime);
   }, [difficulty]);
 
+  /* ===== Timer ===== */
   useEffect(() => {
-    if (showWinner || gameOver) return; // Stop timer if game ends
+    if (showWinner || gameOver) return;
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -85,23 +102,29 @@ const FlashcardGame = ({ route, navigation }) => {
     return () => clearInterval(timer);
   }, [showWinner, gameOver]);
 
-  const totalPairs = originalFlashcards.filter(
-    (card) => card.level === difficulty
-  ).length;
-
+  /* ===== Match Logic ===== */
   useEffect(() => {
     if (flipped.length === 2) {
       const [first, second] = flipped;
+
       if (cards[first].id === cards[second].id) {
         setMatched((prev) => [...prev, first, second]);
+
         setScore((prev) => {
           const newScore = prev + 1;
+
           if (newScore === totalPairs) {
+            const bonus =
+              timeLeft * difficultyConfig[difficulty].multiplier;
+
+            setTimeBonus(bonus);
             setShowWinner(true);
+            setShowConfetti(true);
           }
 
           return newScore;
         });
+
         setFlipped([]);
       } else {
         setTimeout(() => {
@@ -119,6 +142,7 @@ const FlashcardGame = ({ route, navigation }) => {
       flipped.length === 2
     )
       return;
+
     setFlipped((prev) => [...prev, index]);
   };
 
@@ -128,27 +152,29 @@ const FlashcardGame = ({ route, navigation }) => {
     setFlipped([]);
     setShowWinner(false);
     setGameOver(false);
+    setTimeBonus(0);
+    setShowConfetti(false);
 
-    const filtered = originalFlashcards.filter(
-      (card) => card.level === difficulty
+    const duplicated = [...filteredCards, ...filteredCards].map(
+      (card, index) => ({
+        ...card,
+        uniqueId: `${card.id}-${index}`,
+      })
     );
-    const duplicated = [...filtered, ...filtered].map((card, index) => ({
-      ...card,
-      uniqueId: `${card.id}-${index}`,
-    }));
-    const shuffled = shuffleArray(duplicated);
-    setCards(shuffled);
 
-    let initialTime = 0;
-    if (difficulty === "easy") initialTime = 60;
-    else if (difficulty === "medium") initialTime = 90;
-    else if (difficulty === "hard") initialTime = 120;
-    setTimeLeft(initialTime);
-    setTotalTime(initialTime); // ← ADD this line
+    setCards(shuffleArray(duplicated));
+    setTimeLeft(difficultyConfig[difficulty].time);
+    setTotalTime(difficultyConfig[difficulty].time);
   };
+
+  /* ================= UI ================= */
 
   return (
     <View style={styles.container}>
+      {showConfetti && (
+        <ConfettiCannon count={200} origin={{ x: 200, y: 0 }} fadeOut />
+      )}
+
       {totalTime > 0 && (
         <View style={styles.progressBarContainer}>
           <View
@@ -160,26 +186,21 @@ const FlashcardGame = ({ route, navigation }) => {
         </View>
       )}
 
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          width: "100%",
-          paddingHorizontal: 20,
-        }}
-      >
+      <View style={styles.header}>
         <Text style={styles.score}>Score: {score}</Text>
-        <Text style={styles.timer}>⏰ Time Left: {timeLeft}s</Text>
+        <Text style={styles.timer}>⏰ {timeLeft}s</Text>
       </View>
 
       <View style={styles.grid}>
         {cards.map((card, index) => {
-          const isVisible = flipped.includes(index) || matched.includes(index);
+          const isVisible =
+            flipped.includes(index) || matched.includes(index);
+
           return (
             <TouchableOpacity
               key={card.uniqueId}
-              onPress={() => handleCardPress(index)}
               style={styles.card}
+              onPress={() => handleCardPress(index)}
               disabled={isVisible}
             >
               {isVisible ? (
@@ -192,88 +213,70 @@ const FlashcardGame = ({ route, navigation }) => {
         })}
       </View>
 
-      {/* Try Again Modal */}
-      <Modal
-        transparent
-        visible={showTryAgain}
-        animationType="fade"
-        onRequestClose={() => setShowTryAgain(false)}
-      >
+      {/* Try Again */}
+      <Modal transparent visible={showTryAgain} animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={{ fontSize: 18, marginBottom: 10 }}>
-              ❌ Try Again!
-            </Text>
+            <Text style={styles.modalTitle}>❌ Try Again!</Text>
             <Pressable
               style={styles.modalButton}
               onPress={() => setShowTryAgain(false)}
             >
-              <Text style={{ color: "#fff" }}>OK</Text>
+              <Text style={styles.modalBtnText}>OK</Text>
             </Pressable>
           </View>
         </View>
       </Modal>
 
-      {/* Winner Modal */}
-      <Modal
-        transparent
-        visible={showWinner}
-        animationType="fade"
-        onRequestClose={() => setShowWinner(false)}
-      >
+      {/* Winner */}
+      <Modal transparent visible={showWinner} animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text
-              style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}
-            >
-              🎉 Congratulations! You won! 🎉
+            <Text style={styles.modalTitle}>
+              🎉 Congratulations! 🎉
             </Text>
+            <Text>Base Score: {score}</Text>
+            <Text>⏱ Time Bonus: +{timeBonus}</Text>
+            <Text style={{ fontWeight: "bold", marginVertical: 6 }}>
+              🏆 Total Score: {score + timeBonus}
+            </Text>
+
             <Pressable style={styles.modalButton} onPress={restartGame}>
-              <Text style={{ color: "#fff" }}>Play Again</Text>
+              <Text style={styles.modalBtnText}>Play Again</Text>
             </Pressable>
+
             <Pressable
               style={styles.modalButton}
               onPress={() => navigation.goBack()}
             >
-              <Text style={{ color: "#fff" }}>Return Home</Text>
+              <Text style={styles.modalBtnText}>Return Home</Text>
             </Pressable>
           </View>
         </View>
       </Modal>
 
-      {/* Game Over Modal */}
-      <Modal
-        transparent
-        visible={gameOver}
-        animationType="fade"
-        onRequestClose={() => setGameOver(false)}
-      >
+      {/* Game Over */}
+      <Modal transparent visible={gameOver} animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text
-              style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}
-            >
-              ⌛ Time’s Up!
-            </Text>
+            <Text style={styles.modalTitle}>⌛ Time’s Up!</Text>
             <Pressable style={styles.modalButton} onPress={restartGame}>
-              <Text style={{ color: "#fff" }}>Try Again</Text>
+              <Text style={styles.modalBtnText}>Try Again</Text>
             </Pressable>
           </View>
         </View>
       </Modal>
 
-      {/* back button  */}
-      <Pressable style={styles.modalButton} onPress={() => navigation.goBack()}>
-        <Text style={{ color: "#fff" }}>Back to Home</Text>
-      </Pressable>
       <Pressable style={styles.restartButton} onPress={restartGame}>
-        <Text style={{ color: "#fff" }}>Restart</Text>
+        <Text style={styles.modalBtnText}>Restart</Text>
       </Pressable>
     </View>
   );
 };
 
 export default FlashcardGame;
+
+/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   container: {
@@ -282,10 +285,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
   },
+  header: {
+    width: "100%",
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
   score: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 10,
+  },
+  timer: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#d9534f",
   },
   grid: {
     flexDirection: "row",
@@ -313,39 +326,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccc",
     borderRadius: 8,
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    padding: 25,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  modalButton: {
-    marginTop: 10,
-    backgroundColor: "#007BFF",
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  restartButton: {
-    marginVertical: 10,
-    backgroundColor: "#28a745",
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  timer: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#d9534f",
-    marginBottom: 10,
-    fontWeight: "black"
-  },
   progressBarContainer: {
     height: 16,
     width: "90%",
@@ -354,10 +334,44 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     overflow: "hidden",
   },
-
   progressBarFill: {
     height: "100%",
     backgroundColor: "#007BFF",
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    padding: 25,
     borderRadius: 10,
+    alignItems: "center",
+    width: "80%",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalButton: {
+    marginTop: 10,
+    backgroundColor: "#007BFF",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  modalBtnText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  restartButton: {
+    marginVertical: 10,
+    backgroundColor: "#28a745",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 5,
   },
 });
