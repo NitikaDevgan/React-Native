@@ -1,105 +1,71 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  Animated,
-} from "react-native";
+import React, { useState } from "react";
+import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 
-const HomeScreen = ({ navigation }) => {
-  const scaleAnim = new Animated.Value(1);
+export default function HomeScreen({ navigation }) {
+  const [username, setUsername] = useState("");
+  const [difficulty, setDifficulty] = useState("easy");
 
-  // const handlePressIn = () => {
-  //   Animated.spring(scaleAnim, {
-  //     toValue: 0.95,
-  //     useNativeDriver: true,
-  //   }).start();
-  // };
-
-  // const handlePressOut = () => {
-  //   Animated.spring(scaleAnim, {
-  //     toValue: 1,
-  //     friction: 3,
-  //     tension: 40,
-  //     useNativeDriver: true,
-  //   }).start();
-  //   navigation.navigate('Flashcards');
-  // };
-
-  const handlePress = (level) => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      friction: 3,
-      tension: 40,
-      useNativeDriver: true,
-    }).start();
-    navigation.navigate("Flashcards", { difficulty: level }); // pass difficulty
+  const startGame = () => {
+    console.log("start clicked");
+    if (!username.trim()) return;
+    navigation.navigate("GameScreen", { username, difficulty });
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🎓 Fun Flashcards Game!</Text>
+      <Text style={styles.title}>🧠 Flashcard Game</Text>
 
-      <Image
-        source={require("../assets/Images/kid.jpg")}
-        style={styles.image}
+      <TextInput
+        placeholder="Enter username"
+        value={username}
+        onChangeText={setUsername}
+        style={styles.input}
       />
 
-      <Animated.View
-        style={{ transform: [{ scale: scaleAnim }], marginTop: 30 }}
-      >
-        <TouchableOpacity style={styles.button} onPress={handlePress}>
-          <Text style={styles.buttonText}>Challenge Your Mind 🔥</Text>
-        </TouchableOpacity>
-      </Animated.View>
+      <View style={styles.row}>
+        {["easy", "medium", "hard"].map((level) => (
+          <Pressable
+            key={level}
+            onPress={() => setDifficulty(level)}
+            style={[styles.button, difficulty === level && styles.active]}
+          >
+            <Text>{level.toUpperCase()}</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <Pressable style={styles.start} onPress={startGame}>
+        <Text style={{ color: "#fff" }}>Start Game</Text>
+      </Pressable>
+
+      <Pressable onPress={() => navigation.navigate("Leaderboard")}>
+        <Text style={{ marginTop: 20 }}>🏆 View Leaderboard</Text>
+      </Pressable>
     </View>
   );
-};
-
-export default HomeScreen;
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFE4B5",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#333",
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 20,
-    marginVertical: 10,
-    fontWeight: "600",
-  },
-  image: {
-    width: 220,
-    height: 220,
-    resizeMode: "contain",
+  container: { flex: 1, alignItems: "center", justifyContent: "center" },
+  title: { fontSize: 28, marginBottom: 20 },
+  input: {
+    borderWidth: 1,
+    width: "70%",
+    padding: 10,
     marginBottom: 20,
+    borderRadius: 8,
   },
+  row: { flexDirection: "row", gap: 10 },
   button: {
-    backgroundColor: "#FF6F61",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 25,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
+    padding: 10,
+    borderWidth: 1,
+    borderRadius: 8,
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
+  active: { backgroundColor: "#ddd" },
+  start: {
+    marginTop: 20,
+    backgroundColor: "#222",
+    padding: 12,
+    borderRadius: 8,
   },
 });
