@@ -5,6 +5,7 @@ import FlashcardScreen from "./screens/FlashcardScreen";
 import HomeScreen from "./screens/HomeScreen"; // ✅ Import the HomeScreen
 import FlashcardGame from "./components/Flashcard";
 import GameScreen from "./screens/GameScreen";
+import LeaderboardScreen from "./screens/LeaderBoardScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +22,7 @@ export default function App() {
         <Stack.Screen name="Flashcards" component={FlashcardScreen} />
         <Stack.Screen name="FlashcardGame" component={FlashcardGame} />
         <Stack.Screen name="GameScreen" component={GameScreen} />
+        <Stack.Screen name="LeaderBoardScreen" component={LeaderboardScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

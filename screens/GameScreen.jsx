@@ -1,72 +1,162 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, Pressable, FlatList, Animated, Switch } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  FlatList,
+  Animated,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const icons = ["🍎", "🍌", "🍇", "🍓", "🍍", "🥝"];
+const iconSets = {
+  easy: ["🍎", "🍌", "🍇"],
+  medium: ["🍎", "🍌", "🍇", "🍓"],
+  hard: ["🍎", "🍌", "🍇", "🍓", "🍍", "🥝"],
+};
 
-export default function GameScreen() {
+export default function GameScreen({ route, navigation }) {
+  const { username, difficulty } = route.params;
+  const icons = iconSets[difficulty];
+
   const [cards, setCards] = useState([]);
   const [flipped, setFlipped] = useState([]);
   const [matched, setMatched] = useState([]);
-  const [darkMode, setDarkMode] = useState(false);
+  const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const flipAnim = useRef({}).current;
 
   useEffect(() => {
     const shuffled = [...icons, ...icons]
-      .map((item) => ({ id: item, key: Math.random().toString() }))
+      .map((i) => ({ id: i, key: Math.random().toString() }))
       .sort(() => Math.random() - 0.5);
 
-    shuffled.forEach((_, i) => {
-      flipAnim[i] = new Animated.Value(0);
-    });
-
+    shuffled.forEach((_, i) => (flipAnim[i] = new Animated.Value(0)));
     setCards(shuffled);
   }, []);
 
+  /* ⏱ Timer */
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+    const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
   const flipCard = (index) => {
-    if (flipped.includes(index)) return;
+    if (flipped.length === 2 || flipped.includes(index)) return;
+
     Animated.timing(flipAnim[index], {
       toValue: 1,
       duration: 300,
       useNativeDriver: false,
     }).start();
-    setFlipped([...flipped, index]);
+
+    const next = [...flipped, index];
+    setFlipped(next);
+
+    if (next.length === 2) checkMatch(next);
   };
 
-  const renderCard = ({ item, index }) => {
-    const rotateY = flipAnim[index]
-      ? flipAnim[index].interpolate({
-          inputRange: [0, 1],
-          outputRange: ["0deg", "180deg"],
-        })
-      : "0deg";
+  const checkMatch = ([a, b]) => {
+    if (cards[a].id === cards[b].id) {
+      setMatched([...matched, a, b]);
+      setScore((s) => s + 10);
+      setFlipped([]);
 
-    return (
-      <Pressable onPress={() => flipCard(index)}>
-        <Animated.View
-          style={[
-            styles.card,
-            { backgroundColor: darkMode ? "#333" : "#fff", transform: [{ rotateY }] },
-          ]}
-        >
-          <Text style={styles.cardText}>
-            {flipped.includes(index) || matched.includes(index) ? item.id : "❓"}
-          </Text>
-        </Animated.View>
-      </Pressable>
-    );
+      if (matched.length + 2 === cards.length) finishGame();
+    } else {
+      setTimeout(() => {
+        Animated.timing(flipAnim[a], {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: false,
+        }).start();
+        Animated.timing(flipAnim[b], {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: false,
+        }).start();
+        setFlipped([]);
+      }, 600);
+    }
+  };
+
+  const finishGame = async () => {
+    const bonus = timeLeft * 2;
+    const finalScore = score + bonus;
+    setShowConfetti(true);
+
+    const entry = {
+      username,
+      score: finalScore,
+      date: new Date().toLocaleDateString(),
+    };
+
+    const data = JSON.parse(await AsyncStorage.getItem("leaderboard")) || [];
+    const updated = [entry, ...data]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+
+    await AsyncStorage.setItem("leaderboard", JSON.stringify(updated));
+
+    setTimeout(() => navigation.navigate("Leaderboard"), 2000);
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: darkMode ? "#111" : "#f2f2f2" }]}>
-      <Switch value={darkMode} onValueChange={setDarkMode} />
-      <FlatList data={cards} numColumns={3} renderItem={renderCard} keyExtractor={(item) => item.key} />
+    <View style={styles.container}>
+      <Text>👤 {username}</Text>
+      <Text>
+        ⏱ {timeLeft}s | ⭐ {score}
+      </Text>
+
+      <FlatList
+        data={cards}
+        numColumns={3}
+        renderItem={({ item, index }) => (
+          <Pressable onPress={() => flipCard(index)}>
+            <Animated.View
+              style={[
+                styles.card,
+                {
+                  transform: [
+                    {
+                      rotateY: flipAnim[index].interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ["0deg", "180deg"],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              <Text style={styles.text}>
+                {flipped.includes(index) || matched.includes(index)
+                  ? item.id
+                  : "❓"}
+              </Text>
+            </Animated.View>
+          </Pressable>
+        )}
+      />
+
+      {showConfetti && <Text style={styles.confetti}>🎉🎉🎉</Text>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 40, alignItems: "center" },
-  card: { width: 90, height: 90, margin: 8, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  cardText: { fontSize: 32 },
+  container: { flex: 1, alignItems: "center", paddingTop: 40 },
+  card: {
+    width: 90,
+    height: 90,
+    margin: 8,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  text: { fontSize: 32 },
+  confetti: { fontSize: 40, marginTop: 20 },
 });

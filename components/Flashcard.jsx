@@ -109,22 +109,7 @@ const FlashcardGame = ({ route, navigation }) => {
 
       if (cards[first].id === cards[second].id) {
         setMatched((prev) => [...prev, first, second]);
-
-        setScore((prev) => {
-          const newScore = prev + 1;
-
-          if (newScore === totalPairs) {
-            const bonus =
-              timeLeft * difficultyConfig[difficulty].multiplier;
-
-            setTimeBonus(bonus);
-            setShowWinner(true);
-            setShowConfetti(true);
-          }
-
-          return newScore;
-        });
-
+        setScore((prev) => prev + 1);
         setFlipped([]);
       } else {
         setTimeout(() => {
@@ -134,6 +119,20 @@ const FlashcardGame = ({ route, navigation }) => {
       }
     }
   }, [flipped]);
+
+  useEffect(() => {
+    if (matched.length === totalPairs * 2) {
+      handleWin();
+    }
+  }, [matched]);
+
+  const handleWin = () => {
+    const bonus = timeLeft * difficultyConfig[difficulty].multiplier;
+
+    setTimeBonus(bonus);
+    setShowWinner(true);
+    setShowConfetti(true);
+  };
 
   const handleCardPress = (index) => {
     if (
@@ -193,8 +192,7 @@ const FlashcardGame = ({ route, navigation }) => {
 
       <View style={styles.grid}>
         {cards.map((card, index) => {
-          const isVisible =
-            flipped.includes(index) || matched.includes(index);
+          const isVisible = flipped.includes(index) || matched.includes(index);
 
           return (
             <TouchableOpacity
@@ -232,9 +230,7 @@ const FlashcardGame = ({ route, navigation }) => {
       <Modal transparent visible={showWinner} animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              🎉 Congratulations! 🎉
-            </Text>
+            <Text style={styles.modalTitle}>🎉 Congratulations! 🎉</Text>
             <Text>Base Score: {score}</Text>
             <Text>⏱ Time Bonus: +{timeBonus}</Text>
             <Text style={{ fontWeight: "bold", marginVertical: 6 }}>
