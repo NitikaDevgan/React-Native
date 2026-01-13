@@ -22,7 +22,7 @@ export default function App() {
         <Stack.Screen name="Flashcards" component={FlashcardScreen} />
         <Stack.Screen name="FlashcardGame" component={FlashcardGame} />
         <Stack.Screen name="GameScreen" component={GameScreen} />
-        <Stack.Screen name="LeaderBoardScreen" component={LeaderboardScreen} />
+        <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -3,24 +3,29 @@ import { View, Text, FlatList, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LeaderboardScreen() {
-  const [data, setData] = useState([]);
+  const [scores, setScores] = useState([]);
 
   useEffect(() => {
-    AsyncStorage.getItem("leaderboard").then((res) => {
-      if (res) setData(JSON.parse(res));
-    });
+    loadScores();
   }, []);
+
+  const loadScores = async () => {
+    const data = await AsyncStorage.getItem("leaderboard");
+    if (data) {
+      setScores(JSON.parse(data));
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🏆 Leaderboard</Text>
 
       <FlatList
-        data={data}
+        data={scores}
         keyExtractor={(_, i) => i.toString()}
         renderItem={({ item, index }) => (
           <Text style={styles.item}>
-            {index + 1}. {item.username} — {item.score}
+            {index + 1}. {item.name} — ⏱ {item.time}s
           </Text>
         )}
       />
@@ -29,7 +34,7 @@ export default function LeaderboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", paddingTop: 40 },
-  title: { fontSize: 24, marginBottom: 20 },
-  item: { fontSize: 16, marginVertical: 6 },
+  container: { flex: 1, padding: 30 },
+  title: { fontSize: 26, marginBottom: 20 },
+  item: { fontSize: 18, marginVertical: 6 },
 });

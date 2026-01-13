@@ -39,6 +39,7 @@ export default function HomeScreen({ navigation }) {
       </Pressable>
 
       <Pressable onPress={() => navigation.navigate("Leaderboard")}>
+        {console.log("navigate to leaderboard")}
         <Text style={{ marginTop: 20 }}>🏆 View Leaderboard</Text>
       </Pressable>
     </View>
