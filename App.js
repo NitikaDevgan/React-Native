@@ -13,11 +13,10 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
-        {/* HomeScreen will now be the landing page */}
         <Stack.Screen
           name="Home"
           component={HomeScreen}
-          options={{ headerShown: false }} // optional: hide top nav bar for cleaner UI
+          options={{ headerShown: false }}
         />
         <Stack.Screen name="Flashcards" component={FlashcardScreen} />
         <Stack.Screen name="FlashcardGame" component={FlashcardGame} />
