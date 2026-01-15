@@ -2,7 +2,7 @@ import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import FlashcardScreen from "./screens/FlashcardScreen";
-import HomeScreen from "./screens/HomeScreen"; // ✅ Import the HomeScreen
+import HomeScreen from "./screens/HomeScreen"; 
 import FlashcardGame from "./components/Flashcard";
 import GameScreen from "./screens/GameScreen";
 import LeaderboardScreen from "./screens/LeaderBoardScreen";
