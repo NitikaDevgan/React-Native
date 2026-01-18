@@ -8,7 +8,11 @@ export default function HomeScreen({ navigation }) {
   const startGame = () => {
     console.log("start clicked");
     if (!username.trim()) return;
-    navigation.navigate("GameScreen", { username, difficulty });
+    navigation.navigate("FlashcardGame", {
+  username,
+  difficulty,
+});
+
   };
 
   return (
