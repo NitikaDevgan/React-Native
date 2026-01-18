@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import ConfettiCannon from "react-native-confetti-cannon";
 
-/* ================= DATA ================= */
 
 const originalFlashcards = [
   { id: 1, image: require("../assets/Images/apple.jpg"), level: "easy" },
