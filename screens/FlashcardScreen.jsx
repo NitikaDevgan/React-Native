@@ -1,49 +1,307 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  Pressable,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import ConfettiCannon from "react-native-confetti-cannon";
 
-const FlashcardScreen = ({ navigation }) => {
-  const difficulties = ["easy", "medium", "hard"];
+/* ================= DATA ================= */
+
+const originalFlashcards = [
+  { id: 1, image: require("../assets/Images/apple.jpg"), level: "easy" },
+  { id: 2, image: require("../assets/Images/banana.jpg"), level: "easy" },
+  { id: 3, image: require("../assets/Images/orange.jpg"), level: "medium" },
+  { id: 4, image: require("../assets/Images/dog.jpg"), level: "medium" },
+  { id: 5, image: require("../assets/Images/cat.jpg"), level: "hard" },
+  { id: 6, image: require("../assets/Images/rabbit.jpg"), level: "hard" },
+];
+
+const shuffleArray = (array) => {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
+
+/* ================= COMPONENT ================= */
+
+export default function FlashcardGame({ route, navigation }) {
+  const { username, difficulty = "easy" } = route.params;
+
+  const [cards, setCards] = useState([]);
+  const [flipped, setFlipped] = useState([]);
+  const [matched, setMatched] = useState([]);
+  const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [showWinner, setShowWinner] = useState(false);
+  const [showGameOver, setShowGameOver] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  const timerRef = useRef(null);
+
+  const difficultyConfig = {
+    easy: { time: 60, multiplier: 2 },
+    medium: { time: 90, multiplier: 3 },
+    hard: { time: 120, multiplier: 5 },
+  };
+
+  /* ===== INIT GAME ===== */
+  useEffect(() => {
+    const selected = originalFlashcards.filter(
+      (c) => c.level === difficulty
+    );
+
+    const duplicated = [...selected, ...selected].map((c, i) => ({
+      ...c,
+      uid: `${c.id}-${i}`,
+    }));
+
+    setCards(shuffleArray(duplicated));
+    setFlipped([]);
+    setMatched([]);
+    setScore(0);
+    setShowWinner(false);
+    setShowGameOver(false);
+    setShowConfetti(false);
+    setTimeLeft(difficultyConfig[difficulty].time);
+  }, [difficulty]);
+
+  /* ===== TIMER ===== */
+  useEffect(() => {
+    if (showWinner || showGameOver) return;
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft((t) => {
+        if (t <= 1) {
+          clearInterval(timerRef.current);
+          setShowGameOver(true);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timerRef.current);
+  }, [showWinner, showGameOver]);
+
+  /* ===== MATCH LOGIC ===== */
+  useEffect(() => {
+    if (flipped.length !== 2) return;
+
+    const [a, b] = flipped;
+
+    if (cards[a].id === cards[b].id) {
+      setMatched((prev) => {
+        const updated = [...prev, a, b];
+
+        if (updated.length === cards.length) {
+          clearInterval(timerRef.current);
+          saveToLeaderboard();
+          setShowWinner(true);
+          setShowConfetti(true);
+        }
+
+        return updated;
+      });
+
+      setScore((s) => s + 1);
+      setFlipped([]);
+    } else {
+      setTimeout(() => setFlipped([]), 800);
+    }
+  }, [flipped]);
+
+  /* ===== SAVE LEADERBOARD ===== */
+  const saveToLeaderboard = async () => {
+    try {
+      const timeTaken =
+        difficultyConfig[difficulty].time - timeLeft;
+
+      const entry = {
+        name: username,
+        score:
+          score +
+          timeLeft * difficultyConfig[difficulty].multiplier,
+        time: timeTaken,
+        difficulty,
+      };
+
+      const existing = await AsyncStorage.getItem("leaderboard");
+      const leaderboard = existing ? JSON.parse(existing) : [];
+
+      const updated = [...leaderboard, entry];
+
+      updated.sort((a, b) => {
+        if (b.score === a.score) {
+          return a.time - b.time;
+        }
+        return b.score - a.score;
+      });
+
+      await AsyncStorage.setItem(
+        "leaderboard",
+        JSON.stringify(updated)
+      );
+    } catch (e) {
+      console.log("Leaderboard error", e);
+    }
+  };
+
+  const handleCardPress = (index) => {
+    if (
+      flipped.includes(index) ||
+      matched.includes(index) ||
+      flipped.length === 2
+    )
+      return;
+
+    setFlipped((prev) => [...prev, index]);
+  };
+
+  const restartGame = () => {
+    navigation.replace("FlashcardGame", {
+      username,
+      difficulty,
+    });
+  };
+
+  const totalScore =
+    score + timeLeft * difficultyConfig[difficulty].multiplier;
+
+  /* ================= UI ================= */
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Select Difficulty Level</Text>
-      {difficulties.map((level) => (
-        <TouchableOpacity
-          key={level}
-          style={styles.button}
-          onPress={() => navigation.navigate("FlashcardGame", { difficulty: level })}
-        >
-          <Text style={styles.buttonText}>{level.toUpperCase()}</Text>
-        </TouchableOpacity>
-      ))}
+      {showConfetti && <ConfettiCannon count={200} fadeOut />}
+
+      <View style={styles.header}>
+        <Text style={styles.score}>Score: {score}</Text>
+        <Text style={styles.timer}>⏰ {timeLeft}s</Text>
+      </View>
+
+      <View style={styles.grid}>
+        {cards.map((card, index) => {
+          const visible =
+            flipped.includes(index) || matched.includes(index);
+
+          return (
+            <TouchableOpacity
+              key={card.uid}
+              style={styles.card}
+              onPress={() => handleCardPress(index)}
+            >
+              {visible ? (
+                <Image source={card.image} style={styles.image} />
+              ) : (
+                <View style={styles.blank} />
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* 🎉 WIN MODAL */}
+      <Modal transparent visible={showWinner}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              🎉 Congratulations {username}!
+            </Text>
+            <Text>Total Score: {totalScore}</Text>
+
+            <Pressable style={styles.modalButton} onPress={restartGame}>
+              <Text style={styles.modalBtnText}>Play Again</Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.modalButton}
+              onPress={() => navigation.navigate("Leaderboard")}
+            >
+              <Text style={styles.modalBtnText}>Leaderboard</Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.modalButton}
+              onPress={() => navigation.navigate("Home")}
+            >
+              <Text style={styles.modalBtnText}>Home</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ⏳ GAME OVER */}
+      <Modal transparent visible={showGameOver && !showWinner}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>⌛ Time’s Up!</Text>
+            <Pressable style={styles.modalButton} onPress={restartGame}>
+              <Text style={styles.modalBtnText}>Try Again</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
-};
+}
+
+/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1, paddingTop: 40, alignItems: "center" },
+  header: {
+    width: "100%",
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  score: { fontSize: 18, fontWeight: "bold" },
+  timer: { fontSize: 18, fontWeight: "bold", color: "#d9534f" },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    marginTop: 20,
+  },
+  card: {
+    width: 90,
+    height: 90,
+    margin: 10,
+    borderRadius: 10,
+    backgroundColor: "#eee",
     justifyContent: "center",
     alignItems: "center",
-    padding: 22,
   },
-  heading: {
-    fontSize: 24,
-    marginBottom: 20,
-    fontWeight: "bold",
-  },
-  button: {
-    backgroundColor: "#007BFF",
-    padding: 15,
-    borderRadius: 8,
-    marginVertical: 10,
-    width: 200,
+  image: { width: 80, height: 80 },
+  blank: { width: 80, height: 80, backgroundColor: "#ccc" },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
     alignItems: "center",
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
+  modalContent: {
+    backgroundColor: "#fff",
+    padding: 25,
+    borderRadius: 10,
+    alignItems: "center",
+    width: "80%",
   },
+  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
+  modalButton: {
+    marginTop: 10,
+    backgroundColor: "#007BFF",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  modalBtnText: { color: "#fff", fontWeight: "bold" },
 });
-
-export default FlashcardScreen;
