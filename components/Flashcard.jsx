@@ -168,29 +168,76 @@ const FlashcardGame = ({ route, navigation }) => {
       </View>
 
       {/* 🎉 WINNER MODAL */}
-      <Modal transparent visible={showWinner}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>🎉 Congratulations!</Text>
-            <Text>Matches: {score}</Text>
-            <Text>Bonus: {timeLeft}</Text>
-            <Text style={{ fontWeight: "bold", marginVertical: 8 }}>
-              🏆 Total Score: {totalScore}
-            </Text>
+      {/* 🎉 CONGRATULATIONS MODAL */}
+<Modal
+  transparent
+  visible={showWinner}
+  animationType="fade"
+  statusBarTranslucent
+>
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <Text style={styles.modalTitle}>🎉 Congratulations!</Text>
 
-            <Pressable style={styles.modalButton} onPress={restartGame}>
-              <Text style={styles.modalBtnText}>Play Again</Text>
-            </Pressable>
+      <Text style={{ marginTop: 8 }}>
+        Player: {route?.params?.username || "Player"}
+      </Text>
 
-            <Pressable
-              style={styles.modalButton}
-              onPress={() => navigation.goBack()}
-            >
-              <Text style={styles.modalBtnText}>Home</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+      <Text style={{ marginTop: 8 }}>
+        Matches Completed: {score}
+      </Text>
+
+      <Text style={{ marginTop: 8 }}>
+        Time Bonus: {timeLeft}
+      </Text>
+
+      <Text
+        style={{
+          marginTop: 12,
+          fontSize: 16,
+          fontWeight: "bold",
+        }}
+      >
+        🏆 Total Score: {totalScore}
+      </Text>
+
+      {/* PLAY AGAIN */}
+      <Pressable
+        style={styles.modalButton}
+        onPress={() =>
+          navigation.replace("FlashcardGame", {
+            difficulty,
+            username: route?.params?.username,
+          })
+        }
+      >
+        <Text style={styles.modalBtnText}>Play Again</Text>
+      </Pressable>
+
+      {/* GO HOME */}
+      <Pressable
+        style={styles.modalButton}
+        onPress={() => navigation.navigate("Home")}
+      >
+        <Text style={styles.modalBtnText}>Home</Text>
+      </Pressable>
+
+      {/* LEADERBOARD */}
+      <Pressable
+        style={[styles.modalButton, { backgroundColor: "#28a745" }]}
+        onPress={() =>
+          navigation.navigate("Leaderboard", {
+            username: route?.params?.username,
+            score: totalScore,
+          })
+        }
+      >
+        <Text style={styles.modalBtnText}>🏆 Leaderboard</Text>
+      </Pressable>
+    </View>
+  </View>
+</Modal>
+
 
       {/* ⏳ GAME OVER MODAL */}
       <Modal transparent visible={showGameOver && !showWinner}>
