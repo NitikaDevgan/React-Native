@@ -167,6 +167,16 @@ export default function FlashcardGame({ route, navigation }) {
     setFlipped((prev) => [...prev, index]);
   };
 
+  const closeModalAndNavigate = (callback) => {
+  setShowWinner(false);
+  setShowConfetti(false);
+
+  setTimeout(() => {
+    callback();
+  }, 50); // 👈 allow modal to unmount
+};
+
+
   const restartGame = () => {
     navigation.replace("FlashcardGame", {
       username,
@@ -218,6 +228,7 @@ export default function FlashcardGame({ route, navigation }) {
   visible={showWinner}
   animationType="fade"
   statusBarTranslucent
+  onRequestClose={() => setShowWinner(false)}
 >
   <View style={styles.modalContainer}>
     <View style={styles.modalContent}>
@@ -248,12 +259,16 @@ export default function FlashcardGame({ route, navigation }) {
       {/* PLAY AGAIN */}
       <Pressable
         style={styles.modalButton}
-        onPress={() =>
-          navigation.replace("FlashcardGame", {
-            difficulty,
-            username: route?.params?.username,
-          })
-        }
+      onPress={() =>
+  closeModalAndNavigate(() =>
+    navigation.replace("FlashcardGame", {
+      difficulty,
+      username: route?.params?.username,
+    })
+  )
+}
+
+
       >
         <Text style={styles.modalBtnText}>Play Again</Text>
       </Pressable>
@@ -261,7 +276,13 @@ export default function FlashcardGame({ route, navigation }) {
       {/* GO HOME */}
       <Pressable
         style={styles.modalButton}
-        onPress={() => navigation.navigate("Home")}
+      onPress={() =>
+  closeModalAndNavigate(() =>
+    navigation.navigate("Home")
+  )
+}
+
+
       >
         <Text style={styles.modalBtnText}>Home</Text>
       </Pressable>
@@ -269,12 +290,16 @@ export default function FlashcardGame({ route, navigation }) {
       {/* LEADERBOARD */}
       <Pressable
         style={[styles.modalButton, { backgroundColor: "#28a745" }]}
-        onPress={() =>
-          navigation.navigate("Leaderboard", {
-            username: route?.params?.username,
-            score: totalScore,
-          })
-        }
+      onPress={() =>
+  closeModalAndNavigate(() =>
+    navigation.navigate("Leaderboard", {
+      username: route?.params?.username,
+      score: totalScore,
+    })
+  )
+}
+
+
       >
         <Text style={styles.modalBtnText}>🏆 Leaderboard</Text>
       </Pressable>
