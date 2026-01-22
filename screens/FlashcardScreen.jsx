@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Modal,
   Pressable,
+  Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ConfettiCannon from "react-native-confetti-cannon";
@@ -179,8 +180,10 @@ export default function FlashcardGame({ route, navigation }) {
   /* ================= UI ================= */
 
   return (
-    <View style={styles.container}>
-      {showConfetti && <ConfettiCannon count={200} fadeOut />}
+    <View style={styles.container}>{showConfetti && Platform.OS === "web" && (
+  <Text style={{ fontSize: 40 }}>🎉🎉🎉</Text>
+)}
+
 
       <View style={styles.header}>
         <Text style={styles.score}>Score: {score}</Text>

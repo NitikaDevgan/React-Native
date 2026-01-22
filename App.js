@@ -3,7 +3,6 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import HomeScreen from "./screens/HomeScreen";
-import FlashcardScreen from "./screens/FlashcardScreen";
 import FlashcardGame from "./components/Flashcard";
 import LeaderboardScreen from "./screens/LeaderBoardScreen";
 
@@ -18,16 +17,11 @@ export default function App() {
           component={HomeScreen}
           options={{ headerShown: false }}
         />
-
-        <Stack.Screen name="Flashcards" component={FlashcardScreen} />
-
-        {/* ✅ SINGLE GAME SCREEN */}
         <Stack.Screen
           name="FlashcardGame"
           component={FlashcardGame}
           options={{ headerShown: false }}
         />
-
         <Stack.Screen
           name="Leaderboard"
           component={LeaderboardScreen}

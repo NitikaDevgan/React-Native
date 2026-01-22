@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Modal,
   Pressable,
+  Platform,
 } from "react-native";
 import ConfettiCannon from "react-native-confetti-cannon";
 
@@ -91,44 +92,48 @@ const FlashcardGame = ({ route, navigation }) => {
   }, [showWinner, showGameOver]);
 
   /* ===== MATCH LOGIC ===== */
-  useEffect(() => {
-    if (flipped.length !== 2) return;
+useEffect(() => {
+  if (flipped.length !== 2) return;
 
-    const [a, b] = flipped;
+  const [a, b] = flipped;
 
-    if (cards[a].id === cards[b].id) {
-      setMatched((prev) => {
-        const updated = [...prev, a, b];
+  if (cards[a].id === cards[b].id) {
+    setMatched((prev) => {
+      const updated = [...prev, a, b];
 
-        // 🎉 GAME COMPLETE
-        if (updated.length === cards.length) {
-          clearInterval(timerRef.current);
-          setTimeout(() => {
-            setShowWinner(true);
-            setShowConfetti(true);
-          }, 400);
-        }
+      // 🎉 GAME COMPLETE
+      if (updated.length === cards.length) {
+        clearInterval(timerRef.current);
+        setTimeout(() => {
+          setShowWinner(true);
+          setShowConfetti(true);
+        }, 400);
+      }
 
-        return updated;
-      });
+      return updated;
+    });
 
-      setScore((s) => s + 1);
-      setFlipped([]);
-    } else {
-      setTimeout(() => setFlipped([]), 800);
-    }
-  }, [flipped]);
+    setScore((s) => s + 1);
+    setFlipped([]);
+  } else {
+    setTimeout(() => setFlipped([]), 800);
+  }
+}, [flipped, cards.length]); // 👈 THIS IS THE KEY
 
-  const handleCardPress = (index) => {
-    if (
-      flipped.includes(index) ||
-      matched.includes(index) ||
-      flipped.length === 2
-    )
-      return;
 
-    setFlipped((prev) => [...prev, index]);
-  };
+const handleCardPress = (index) => {
+  if (
+    showWinner ||
+    showGameOver ||
+    flipped.includes(index) ||
+    matched.includes(index) ||
+    flipped.length === 2
+  )
+    return;
+
+  setFlipped((prev) => [...prev, index]);
+};
+
 
   const restartGame = () => {
     navigation.replace("FlashcardGame", { difficulty });
@@ -140,7 +145,11 @@ const FlashcardGame = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      {showConfetti && <ConfettiCannon count={200} fadeOut />}
+     {showConfetti && Platform.OS === "web" && (
+  <Text style={{ fontSize: 40 }}>🎉🎉🎉</Text>
+)}
+
+
 
       <View style={styles.header}>
         <Text style={styles.score}>Score: {score}</Text>

@@ -12,7 +12,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const icons = ["🍎", "🍌", "🍇"];
 
-export default function GameScreen() {
+export default function GameScreen({ route, navigation }) {
   const [cards, setCards] = useState([]);
   const [flipped, setFlipped] = useState([]);
   const [matched, setMatched] = useState([]);
@@ -145,12 +145,12 @@ export default function GameScreen() {
       />
 
       {/* 🎉 CONGRATS MODAL */}
-      <Modal visible={gameWon} transparent animationType="fade">
+      <Modal visible={gameWon} transparent animationType="fade" statusBarTranslucent>
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
             <Text style={styles.winText}>🎉 Congratulations!</Text>
-            <Text>Player: {username}</Text>
-            <Text>Time: {time}s</Text>
+            <Text style={{ marginTop: 8 }}>Player: {username}</Text>
+            <Text style={{ marginTop: 8 }}>Time: {time}s</Text>
 
             <Pressable
               style={styles.modalBtn}
