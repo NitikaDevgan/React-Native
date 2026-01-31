@@ -187,7 +187,7 @@ export default function FlashcardGame({ route, navigation }) {
   const totalScore =
     score + timeLeft * difficultyConfig[difficulty].multiplier;
 
-  /* ================= UI ================= */
+
 
   return (
     <View style={styles.container}>{showConfetti && Platform.OS === "web" && (
