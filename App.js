@@ -7,7 +7,7 @@ import FlashcardGame from "./components/Flashcard";
 import LeaderboardScreen from "./screens/LeaderBoardScreen";
 
 const Stack = createNativeStackNavigator();
-//this is the test comment 
+//this is the test comment pro
 export default function App() {
   return (
     <NavigationContainer>
