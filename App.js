@@ -8,7 +8,7 @@ import GameScreen from "./screens/GameScreen";
 import LeaderboardScreen from "./screens/LeaderBoardScreen";
 
 const Stack = createNativeStackNavigator();
-
+//this is the test comment 
 export default function App() {
   return (
     <NavigationContainer>
