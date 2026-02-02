@@ -10,9 +10,22 @@ export default function LeaderboardScreen() {
   }, []);
 
   const loadScores = async () => {
-    const data = await AsyncStorage.getItem("leaderboard");
-    if (data) {
-      setScores(JSON.parse(data));
+    try {
+      const data = await AsyncStorage.getItem("leaderboard");
+      if (data) {
+        const parsed = JSON.parse(data);
+
+        parsed.sort((a, b) => {
+          if (b.score === a.score) {
+            return a.time - b.time;
+          }
+          return b.score - a.score;
+        });
+
+        setScores(parsed);
+      }
+    } catch (e) {
+      console.log("Leaderboard load error", e);
     }
   };
 
@@ -25,7 +38,7 @@ export default function LeaderboardScreen() {
         keyExtractor={(_, i) => i.toString()}
         renderItem={({ item, index }) => (
           <Text style={styles.item}>
-            {index + 1}. {item.name} — ⏱ {item.time}s
+            {index + 1}. {item.name} — {item.score} pts — {item.time}s
           </Text>
         )}
       />
