@@ -70,7 +70,7 @@ export default function GameScreen({ route, navigation }) {
   useEffect(() => {
     if (matched.length === cards.length && cards.length > 0) {
       clearInterval(timerRef.current);
-      console.log("🎉 GAME COMPLETED");
+      console.log("🎉 GAME COMPLETED CONGRATULATIONS");
       setGameWon(true);
     }
   }, [matched]);
