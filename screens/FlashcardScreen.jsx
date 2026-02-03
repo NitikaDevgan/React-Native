@@ -93,7 +93,6 @@ export default function FlashcardGame({ route, navigation }) {
     return () => clearInterval(timerRef.current);
   }, [showWinner, showGameOver]);
 
-  /* ===== MATCH LOGIC ===== */
   useEffect(() => {
     if (flipped.length !== 2) return;
 
